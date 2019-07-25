@@ -14,6 +14,22 @@ spec:
         component: elasticsearch
         role: data
     spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: component
+                  operator: In
+                  values:
+                  - elasticsearch
+                - key: role
+                  operator: In
+                  values:
+                  - data
+              topologyKey: kubernetes.io/hostname
       initContainers:
       - name: init-sysctl
         image: busybox
@@ -29,7 +45,7 @@ spec:
             add:
               - IPC_LOCK
               - SYS_RESOURCE
-        image: quay.io/pires/docker-elasticsearch-kubernetes:5.5.1
+        image: quay.io/kiran01bm/elasticsearch:latest
         imagePullPolicy: IfNotPresent
         env:
         - name: NAMESPACE
@@ -52,6 +68,8 @@ spec:
           value: "-Xms1024m -Xmx1024m"
         - name: "DISCOVERY_SERVICE"
           value: "elasticsearch-discovery"
+        - name: "NETWORK_HOST"
+          value: "0.0.0.0"
         ports:
         - containerPort: 9300
           name: transport
@@ -63,7 +81,7 @@ spec:
   - metadata:
       name: storage
       annotations:
-        volume.beta.kubernetes.io/storage-class: ssd
+        volume.beta.kubernetes.io/storage-class: storagefores
     spec:
       accessModes: [ "ReadWriteOnce" ]
       resources:

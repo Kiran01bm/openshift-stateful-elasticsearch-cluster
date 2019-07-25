@@ -13,6 +13,22 @@ spec:
         component: elasticsearch
         role: client
     spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: component
+                  operator: In
+                  values:
+                  - elasticsearch
+                - key: role
+                  operator: In
+                  values:
+                  - client
+              topologyKey: kubernetes.io/hostname
       containers:
       - name: es-client
         securityContext:
@@ -21,7 +37,7 @@ spec:
             add:
               - IPC_LOCK
               - SYS_RESOURCE
-        image: quay.io/pires/docker-elasticsearch-kubernetes:5.5.1
+        image: quay.io/kiran01bm/elasticsearch:latest
         imagePullPolicy: IfNotPresent
         env:
         - name: NAMESPACE
@@ -40,6 +56,8 @@ spec:
           value: "-Xms256m -Xmx256m"
         - name: "DISCOVERY_SERVICE"
           value: "elasticsearch-discovery"
+        - name: "NETWORK_HOST"
+          value: "0.0.0.0"
         ports:
         - containerPort: 9200
           name: http
